@@ -41,3 +41,4 @@ flutter run
 Para Android, confirme que o Android SDK/NDK necessários estão instalados. O projeto solicita NDK `28.2.13676358`.
 "# app" 
 "# app" 
+"# app" 
