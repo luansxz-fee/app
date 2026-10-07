@@ -1,0 +1,8 @@
+.dart_tool/
+.packages
+.pub-cache/
+build/
+.idea/
+.vscode/
+android/.gradle/
+android/local.properties

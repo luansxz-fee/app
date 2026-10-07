@@ -1,0 +1,10 @@
+<resources>
+    <style name="LaunchTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F5F8FD</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+    <style name="NormalTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F5F8FD</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+</resources>
