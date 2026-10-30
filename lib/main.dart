@@ -57,11 +57,11 @@ class Medication {
   final List<String> times;
   final int stock, stockMax;
   final bool active, reminder;
-  final String? endDate, instructions, prescribedBy, doctorCrm, sideEffects;
-  const Medication({required this.id, required this.name, required this.dosage, required this.unit, required this.frequency, required this.category, required this.icon, required this.color, required this.startDate, required this.times, required this.stock, required this.stockMax, required this.active, required this.reminder, this.endDate, this.instructions, this.prescribedBy, this.doctorCrm, this.sideEffects});
+  final String? endDate, instructions, prescribedBy, sideEffects;
+  const Medication({required this.id, required this.name, required this.dosage, required this.unit, required this.frequency, required this.category, required this.icon, required this.color, required this.startDate, required this.times, required this.stock, required this.stockMax, required this.active, required this.reminder, this.endDate, this.instructions, this.prescribedBy, this.sideEffects});
   factory Medication.fromJson(Map<String, dynamic> j) => Medication(
-    id: '${j['id'] ?? ''}', name: '${j['nome'] ?? ''}', dosage: '${j['dosagem'] ?? ''}', unit: '${j['unidade'] ?? ''}', frequency: '${j['frequencia'] ?? ''}', category: '${j['categoria'] ?? 'Outros'}', icon: '${j['icone'] ?? '💊'}', color: '${j['cor'] ?? '#2563EB'}', startDate: '${j['dataInicio'] ?? DateFormat('yyyy-MM-dd').format(DateTime.now())}', times: (j['horarios'] as List? ?? const []).map((e) => '$e').toList(), stock: int.tryParse('${j['estoqueAtual'] ?? 30}') ?? 30, stockMax: int.tryParse('${j['estoqueMaximo'] ?? 30}') ?? 30, active: j['ativo'] != false, reminder: j['lembreteAtivo'] != false, endDate: j['dataTermino']?.toString(), instructions: j['instrucoes']?.toString(), prescribedBy: j['medicoPrescritor']?.toString(), doctorCrm: (j['crmMedico'] ?? j['medicoCRM'] ?? j['crm'])?.toString(), sideEffects: j['efeitosColaterais']?.toString());
-  Map<String, dynamic> toApi() => {'nome': name, 'dosagem': dosage, 'unidade': unit, 'frequencia': frequency, 'horarios': times, 'dataInicio': startDate, 'dataTermino': endDate, 'instrucoes': instructions, 'cor': color, 'icone': icon, 'categoria': category, 'estoqueAtual': stock, 'estoqueMaximo': stockMax, 'lembreteAtivo': reminder, 'ativo': active, 'medicoPrescritor': prescribedBy, 'crmMedico': doctorCrm, 'efeitosColaterais': sideEffects};
+    id: '${j['id'] ?? ''}', name: '${j['nome'] ?? ''}', dosage: '${j['dosagem'] ?? ''}', unit: '${j['unidade'] ?? ''}', frequency: '${j['frequencia'] ?? ''}', category: '${j['categoria'] ?? 'Outros'}', icon: '${j['icone'] ?? '💊'}', color: '${j['cor'] ?? '#2563EB'}', startDate: '${j['dataInicio'] ?? DateFormat('yyyy-MM-dd').format(DateTime.now())}', times: (j['horarios'] as List? ?? const []).map((e) => '$e').toList(), stock: int.tryParse('${j['estoqueAtual'] ?? 30}') ?? 30, stockMax: int.tryParse('${j['estoqueMaximo'] ?? 30}') ?? 30, active: j['ativo'] != false, reminder: j['lembreteAtivo'] != false, endDate: j['dataTermino']?.toString(), instructions: j['instrucoes']?.toString(), prescribedBy: j['medicoPrescritor']?.toString(), sideEffects: j['efeitosColaterais']?.toString());
+  Map<String, dynamic> toApi() => {'nome': name, 'dosagem': dosage, 'unidade': unit, 'frequencia': frequency, 'horarios': times, 'dataInicio': startDate, 'dataTermino': endDate, 'instrucoes': instructions, 'cor': color, 'icone': icon, 'categoria': category, 'estoqueAtual': stock, 'estoqueMaximo': stockMax, 'lembreteAtivo': reminder, 'ativo': active, 'medicoPrescritor': prescribedBy, 'efeitosColaterais': sideEffects};
 }
 
 class DoseLog {
@@ -731,53 +731,10 @@ class _LoginPageState extends State<LoginPage> {
 
 class RegisterPage extends StatefulWidget { const RegisterPage({super.key}); @override State<RegisterPage> createState() => _RegisterPageState(); }
 class _RegisterPageState extends State<RegisterPage> {
-  final name = TextEditingController(), email = TextEditingController(), password = TextEditingController(), confirm = TextEditingController();
-  bool busy = false, obscure = true;
-
-  bool get passwordIsStrong => RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$').hasMatch(password.text);
-
-  @override
-  void dispose() { name.dispose(); email.dispose(); password.dispose(); confirm.dispose(); super.dispose(); }
-
-  Future<void> submit() async {
-    if (name.text.trim().length < 2 || !email.text.contains('@') || !passwordIsStrong || password.text != confirm.text) {
-      snack(context, 'A senha deve ter no mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial. Confira também o nome, e-mail e confirmação.');
-      return;
-    }
-    setState(() => busy = true);
-    try {
-      await AppScope.of(context).register(name.text, email.text, password.text);
-      if (mounted) Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const ShellPage()), (_) => false);
-    } catch (e) {
-      if (mounted) snack(context, e.toString());
-    } finally {
-      if (mounted) setState(() => busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => AuthScaffold(
-    eyebrow: 'Comece agora', title: 'Crie seu espaço',
-    subtitle: 'Leva menos de um minuto para deixar sua rotina mais organizada.',
-    footer: 'Já possui uma conta?',
-    footerAction: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage())),
-    footerActionText: 'Entrar',
-    form: Column(children: [
-      TextField(controller: name, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nome completo', prefixIcon: Icon(Icons.person_outline_rounded))),
-      const SizedBox(height: 12),
-      TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'E-mail', prefixIcon: Icon(Icons.alternate_email_rounded))),
-      const SizedBox(height: 12),
-      TextField(controller: password, obscureText: obscure, onChanged: (_) => setState(() {}), decoration: InputDecoration(labelText: 'Senha', prefixIcon: const Icon(Icons.lock_outline_rounded), suffixIcon: IconButton(onPressed: () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)))),
-      const SizedBox(height: 8),
-      Align(alignment: Alignment.centerLeft, child: Text('A senha precisa ter:', style: TextStyle(fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurfaceVariant))),
-      const SizedBox(height: 5),
-      const Align(alignment: Alignment.centerLeft, child: Text('• Pelo menos 8 caracteres\n• Uma letra maiúscula e uma minúscula\n• Um número\n• Um caractere especial (ex.: @, #, !)', style: TextStyle(fontSize: 12, height: 1.5))),
-      const SizedBox(height: 12),
-      TextField(controller: confirm, obscureText: obscure, decoration: const InputDecoration(labelText: 'Confirmar senha', prefixIcon: Icon(Icons.verified_user_outlined))),
-      const SizedBox(height: 20),
-      SizedBox(width: double.infinity, child: FilledButton.icon(onPressed: busy ? null : submit, icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.arrow_forward_rounded), label: Text(busy ? 'Criando...' : 'Criar minha conta'))),
-    ]),
-  );
+  final name = TextEditingController(), email = TextEditingController(), password = TextEditingController(), confirm = TextEditingController(); bool busy = false, obscure = true;
+  @override void dispose() { name.dispose(); email.dispose(); password.dispose(); confirm.dispose(); super.dispose(); }
+  Future<void> submit() async { if (name.text.trim().length < 2 || !email.text.contains('@') || password.text.length < 6 || password.text != confirm.text) { snack(context, 'Revise nome, e-mail e senhas. A senha deve ter pelo menos 6 caracteres.'); return; } setState(() => busy = true); try { await AppScope.of(context).register(name.text, email.text, password.text); if (mounted) Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const ShellPage()), (_) => false); } catch (e) { if (mounted) snack(context, e.toString()); } finally { if (mounted) setState(() => busy = false); } }
+  @override Widget build(BuildContext context) => AuthScaffold(eyebrow: 'Comece agora', title: 'Crie seu espaço', subtitle: 'Leva menos de um minuto para deixar sua rotina mais organizada.', footer: 'Já possui uma conta?', footerAction: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage())), footerActionText: 'Entrar', form: Column(children: [TextField(controller: name, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nome completo', prefixIcon: Icon(Icons.person_outline_rounded))), const SizedBox(height: 12), TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'E-mail', prefixIcon: Icon(Icons.alternate_email_rounded))), const SizedBox(height: 12), TextField(controller: password, obscureText: obscure, decoration: InputDecoration(labelText: 'Senha', prefixIcon: const Icon(Icons.lock_outline_rounded), suffixIcon: IconButton(onPressed: () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)))), const SizedBox(height: 12), TextField(controller: confirm, obscureText: obscure, decoration: const InputDecoration(labelText: 'Confirmar senha', prefixIcon: Icon(Icons.verified_user_outlined))), const SizedBox(height: 20), SizedBox(width: double.infinity, child: FilledButton.icon(onPressed: busy ? null : submit, icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.arrow_forward_rounded), label: Text(busy ? 'Criando...' : 'Criar minha conta')))]));
 }
 
 class ShellPage extends StatefulWidget {
@@ -1017,54 +974,241 @@ class SectionCard extends StatelessWidget {
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final s = AppScope.of(context);
-    final active = s.meds.where((m) => m.active).toList();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    DateTime? parseDateOnly(String? value) {
+      if (value == null || value.trim().isEmpty) return null;
+
+      final text = value.trim();
+
+      // Formato brasileiro: dd/MM/yyyy
+      final br = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$')
+          .firstMatch(text);
+
+      if (br != null) {
+        final day = int.tryParse(br.group(1)!);
+        final month = int.tryParse(br.group(2)!);
+        final year = int.tryParse(br.group(3)!);
+
+        if (day == null || month == null || year == null) {
+          return null;
+        }
+
+        final date = DateTime(year, month, day);
+
+        if (date.year != year ||
+            date.month != month ||
+            date.day != day) {
+          return null;
+        }
+
+        return date;
+      }
+
+      // Formato ISO: yyyy-MM-dd ou yyyy-MM-ddTHH:mm:ss
+      final iso = RegExp(r'^(\d{4})-(\d{2})-(\d{2})')
+          .firstMatch(text);
+
+      if (iso != null) {
+        final year = int.tryParse(iso.group(1)!);
+        final month = int.tryParse(iso.group(2)!);
+        final day = int.tryParse(iso.group(3)!);
+
+        if (year == null || month == null || day == null) {
+          return null;
+        }
+
+        final date = DateTime(year, month, day);
+
+        if (date.year != year ||
+            date.month != month ||
+            date.day != day) {
+          return null;
+        }
+
+        return date;
+      }
+
+      // Última tentativa para outros formatos aceitos pelo Dart.
+      final parsed = DateTime.tryParse(text);
+      if (parsed == null) return null;
+
+      return DateTime(parsed.year, parsed.month, parsed.day);
+    }
+
+    final active = s.meds.where((med) {
+      if (!med.active) return false;
+
+      final start = parseDateOnly(med.startDate);
+      final end = parseDateOnly(med.endDate);
+
+      // Sem data inicial válida, não bloqueia o medicamento:
+      // usa hoje como referência para não esconder os cadastrados.
+      final startDate = start ?? today;
+
+      // Não exibe medicamentos antes do início.
+      if (today.isBefore(startDate)) return false;
+
+      // Não exibe medicamentos depois do término.
+      if (end != null && today.isAfter(end)) return false;
+
+      return true;
+    }).toList();
+
     final scheduled = <MapEntry<Medication, String>>[];
+
     for (final med in active) {
       for (final time in med.times) {
-        scheduled.add(MapEntry(med, time));
+        if (time.trim().isNotEmpty) {
+          scheduled.add(MapEntry(med, time.trim()));
+        }
       }
     }
+
     scheduled.sort((a, b) => a.value.compareTo(b.value));
-    final today = DateTime.now();
-    final done = s.logs.where((l) {
-      final date = DateTime.tryParse(l.date);
-      return l.status.toLowerCase() == 'tomada' && date != null && date.year == today.year && date.month == today.month && date.day == today.day;
+
+    final todayLogs = s.logs.where((log) {
+      final date = parseDateOnly(log.date);
+
+      return date != null &&
+          date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day;
+    }).toList();
+
+    final done = todayLogs.where((log) {
+      final status = log.status.trim().toLowerCase();
+      return status == 'tomada' || status == 'tomado';
     }).length.clamp(0, scheduled.length);
-    final progress = scheduled.isEmpty ? 0.0 : (done / scheduled.length).clamp(0, 1).toDouble();
+
+    final progress = scheduled.isEmpty
+        ? 0.0
+        : (done / scheduled.length).clamp(0.0, 1.0).toDouble();
+
     return PageFrame(
       eyebrow: 'CENTRAL DO DIA',
       title: 'Visão geral',
       subtitle: 'Uma leitura clara da sua rotina, sem excesso de informação.',
-      action: IconButton(tooltip: 'Atualizar dados', onPressed: s.loading ? null : () => s.refresh(), icon: const Icon(Icons.refresh_rounded)),
+      action: IconButton(
+        tooltip: 'Atualizar dados',
+        onPressed: s.loading ? null : () => s.refresh(),
+        icon: const Icon(Icons.refresh_rounded),
+      ),
       child: RefreshIndicator(
         onRefresh: s.refresh,
-        child: ListView(padding: const EdgeInsets.only(bottom: 30), children: [
-          _DashboardHero(done: done, total: scheduled.length, progress: progress, name: s.user?.name ?? 'Olá'),
-          const SizedBox(height: 16),
-          _DashboardMetrics(active: active.length, done: done, total: scheduled.length, adherence7: s.adherence7, adherence30: s.adherence30),
-          const SizedBox(height: 16),
-          SectionCard(
-            title: 'Rotina de hoje',
-            subtitle: scheduled.isEmpty ? 'Sua agenda começa assim que você cadastrar um medicamento.' : 'Doses organizadas por horário para você não perder o ritmo.',
-            icon: Icons.schedule_rounded,
-            action: scheduled.isEmpty ? null : _SmallCount('${scheduled.length} ${scheduled.length == 1 ? 'dose' : 'doses'}'),
-            child: scheduled.isEmpty
-                ? const EmptyState(icon: Icons.medication_outlined, title: 'Nenhuma dose programada', subtitle: 'Adicione um medicamento e defina os horários da sua rotina.')
-                : Column(children: [for (int i = 0; i < scheduled.length; i++) Padding(padding: EdgeInsets.only(bottom: i == scheduled.length - 1 ? 0 : 10), child: DoseTile(med: scheduled[i].key, time: scheduled[i].value, onStatus: (status) => AppScope.of(context).logDose(scheduled[i].key.id, scheduled[i].value, status)))]),
-          ),
-          const SizedBox(height: 16),
-          LayoutBuilder(builder: (context, box) {
-            final low = active.where((m) => m.stockMax > 0 && m.stock / m.stockMax <= .25).toList();
-            final cards = [
-              _InsightCard(title: 'Adesão recente', value: '${s.adherence7}%', subtitle: 'últimos 7 dias', progress: s.adherence7 / 100, icon: Icons.trending_up_rounded, color: const Color(0xFF16A34A)),
-              _InsightCard(title: 'Estoque em atenção', value: '${low.length}', subtitle: low.isEmpty ? 'Tudo sob controle' : 'itens precisam de reposição', progress: low.isEmpty ? 1 : .25, icon: Icons.inventory_2_outlined, color: low.isEmpty ? const Color(0xFF16A34A) : const Color(0xFFF59E0B)),
-            ];
-            return box.maxWidth >= 720 ? Row(children: [Expanded(child: cards[0]), const SizedBox(width: 14), Expanded(child: cards[1])]) : Column(children: [cards[0], const SizedBox(height: 14), cards[1]]);
-          }),
-        ]),
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 30),
+          children: [
+            _DashboardHero(
+              done: done,
+              total: scheduled.length,
+              progress: progress,
+              name: s.user?.name ?? 'Olá',
+            ),
+            const SizedBox(height: 16),
+            _DashboardMetrics(
+              active: active.length,
+              done: done,
+              total: scheduled.length,
+              adherence7: s.adherence7,
+              adherence30: s.adherence30,
+            ),
+            const SizedBox(height: 16),
+            SectionCard(
+              title: 'Rotina de hoje',
+              subtitle: scheduled.isEmpty
+                  ? 'Nenhuma dose programada para hoje.'
+                  : 'Doses organizadas por horário para você não perder o ritmo.',
+              icon: Icons.schedule_rounded,
+              action: scheduled.isEmpty
+                  ? null
+                  : _SmallCount(
+                      '${scheduled.length} ${scheduled.length == 1 ? 'dose' : 'doses'}',
+                    ),
+              child: scheduled.isEmpty
+                  ? const EmptyState(
+                      icon: Icons.medication_outlined,
+                      title: 'Nenhuma dose programada',
+                      subtitle:
+                          'Confira seus medicamentos e as datas de início e término do tratamento.',
+                    )
+                  : Column(
+                      children: [
+                        for (int i = 0; i < scheduled.length; i++)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: i == scheduled.length - 1 ? 0 : 10,
+                            ),
+                            child: DoseTile(
+                              med: scheduled[i].key,
+                              time: scheduled[i].value,
+                              onStatus: (status) async {
+                                await AppScope.of(context).logDose(
+                                  scheduled[i].key.id,
+                                  scheduled[i].value,
+                                  status,
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, box) {
+                final low = active.where((med) {
+                  return med.stockMax > 0 &&
+                      med.stock / med.stockMax <= .25;
+                }).toList();
+
+                final cards = [
+                  _InsightCard(
+                    title: 'Adesão recente',
+                    value: '${s.adherence7}%',
+                    subtitle: 'últimos 7 dias',
+                    progress: s.adherence7 / 100,
+                    icon: Icons.trending_up_rounded,
+                    color: const Color(0xFF16A34A),
+                  ),
+                  _InsightCard(
+                    title: 'Estoque em atenção',
+                    value: '${low.length}',
+                    subtitle: low.isEmpty
+                        ? 'Tudo sob controle'
+                        : 'itens precisam de reposição',
+                    progress: low.isEmpty ? 1 : .25,
+                    icon: Icons.inventory_2_outlined,
+                    color: low.isEmpty
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFF59E0B),
+                  ),
+                ];
+
+                return box.maxWidth >= 720
+                    ? Row(
+                        children: [
+                          Expanded(child: cards[0]),
+                          const SizedBox(width: 14),
+                          Expanded(child: cards[1]),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          cards[0],
+                          const SizedBox(height: 14),
+                          cards[1],
+                        ],
+                      );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1207,6 +1351,39 @@ class _DoseTileState extends State<DoseTile> {
     return '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
+  // Lê somente a parte YYYY-MM-DD para evitar mudança de dia por fuso horário.
+  DateTime? _parseDateOnly(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final raw = value.trim();
+    final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(raw);
+    if (match == null) return null;
+
+    final year = int.tryParse(match.group(1)!);
+    final month = int.tryParse(match.group(2)!);
+    final day = int.tryParse(match.group(3)!);
+    if (year == null || month == null || day == null) return null;
+
+    try {
+      return DateTime(year, month, day);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _isInsideTreatmentPeriod(Medication medication) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = _parseDateOnly(medication.startDate);
+    final end = _parseDateOnly(medication.endDate);
+
+    // Se a data de início estiver ausente ou inválida, não marcar como perdida
+    // por segurança: não sabemos se o tratamento já começou.
+    if (start == null) return false;
+    if (today.isBefore(start)) return false;
+    if (end != null && today.isAfter(end)) return false;
+    return true;
+  }
+
   Future<void> take() async {
     if (busy || taken) return;
     setState(() => busy = true);
@@ -1229,24 +1406,18 @@ class _DoseTileState extends State<DoseTile> {
     final today = _todayKey();
     final existing = store.logs.where((l) => l.medicationId == widget.med.id && l.time == widget.time && l.date.startsWith(today)).toList();
     final loggedStatus = existing.isEmpty ? null : existing.last.status.toLowerCase();
-    final now = DateTime.now();
-    final currentMinutes = now.hour * 60 + now.minute;
-    DateTime? parseTreatmentDate(String? value) {
-      if (value == null || value.isEmpty) return null;
-      try { return DateTime.parse(value).toLocal(); } catch (_) { return null; }
-    }
-    final treatmentStart = parseTreatmentDate(widget.med.startDate);
-    final treatmentEnd = parseTreatmentDate(widget.med.endDate);
-    final todayDate = DateTime(now.year, now.month, now.day);
-    final startDate = treatmentStart == null ? null : DateTime(treatmentStart.year, treatmentStart.month, treatmentStart.day);
-    final endDate = treatmentEnd == null ? null : DateTime(treatmentEnd.year, treatmentEnd.month, treatmentEnd.day);
-    final treatmentHasStarted = startDate == null || !todayDate.isBefore(startDate);
-    final treatmentHasNotEnded = endDate == null || !todayDate.isAfter(endDate);
-    final withinTreatmentPeriod = treatmentHasStarted && treatmentHasNotEnded;
-    final passed = withinTreatmentPeriod && currentMinutes > _minutes(widget.time);
+    final currentMinutes = DateTime.now().hour * 60 + DateTime.now().minute;
+    final insideTreatmentPeriod = _isInsideTreatmentPeriod(widget.med);
+    final passed = insideTreatmentPeriod &&
+        currentMinutes > _minutes(widget.time);
     final isTaken = taken || loggedStatus == 'tomada' || loggedStatus == 'tomado';
     final isSkipped = !isTaken && (loggedStatus == 'pulada' || loggedStatus == 'skipped');
-    final isMissed = !isTaken && !isSkipped && (loggedStatus == 'perdida' || loggedStatus == 'missed' || (loggedStatus == null && passed));
+    final isMissed = insideTreatmentPeriod &&
+        !isTaken &&
+        !isSkipped &&
+        (loggedStatus == 'perdida' ||
+            loggedStatus == 'missed' ||
+            (loggedStatus == null && passed));
     final statusColorValue = isTaken
         ? const Color(0xFF16A34A)
         : isMissed
@@ -1412,8 +1583,6 @@ class _MedicationCardState extends State<MedicationCard> {
               Row(children: [Expanded(child: Text(m.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900))), const SizedBox(width: 8), StatusBadge(active: m.active)]),
               const SizedBox(height: 5),
               Text('${m.dosage} ${m.unit} • ${m.frequency}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
-              if (m.prescribedBy?.isNotEmpty == true) Padding(padding: const EdgeInsets.only(top: 5), child: Text('Médico: ${m.prescribedBy}', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant))),
-              if (m.doctorCrm?.isNotEmpty == true) Padding(padding: const EdgeInsets.only(top: 3), child: Text('CRM: ${m.doctorCrm}', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant))),
             ])),
             PopupMenuButton<String>(tooltip: 'Ações', onSelected: (value) { if (value == 'edit') showDialog(context: context, builder: (_) => MedicationForm(med: m)); if (value == 'delete') remove(); }, itemBuilder: (_) => const [PopupMenuItem(value: 'edit', child: ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.edit_outlined), title: Text('Editar'))), PopupMenuItem(value: 'delete', child: ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.delete_outline_rounded), title: Text('Excluir')))]),
           ]),
@@ -1692,7 +1861,7 @@ class _ActionTile extends StatelessWidget {
 }
 
 class MedicationForm extends StatefulWidget { final Medication? med; const MedicationForm({super.key,this.med}); @override State<MedicationForm> createState()=>_MedicationFormState(); }
-class _MedicationFormState extends State<MedicationForm>{final name=TextEditingController(),dose=TextEditingController(),stock=TextEditingController(),maxStock=TextEditingController(),instructions=TextEditingController(),doctor=TextEditingController(),doctorCrm=TextEditingController(),side=TextEditingController();String unit='mg',frequency='Diário',category='Outros',icon='💊',color='#2563EB',start='';bool reminder=true,busy=false,active=true;final List<String>times=['08:00'];@override void initState(){super.initState();final m=widget.med;name.text=m?.name??'';dose.text=m?.dosage??'';stock.text='${m?.stock??30}';maxStock.text='${m?.stockMax??30}';instructions.text=m?.instructions??'';doctor.text=m?.prescribedBy??'';doctorCrm.text=m?.doctorCrm??'';side.text=m?.sideEffects??'';unit=m?.unit??'mg';frequency=m?.frequency??'Diário';category=m?.category??'Outros';icon=m?.icon??'💊';color=m?.color??'#2563EB';start=m?.startDate??DateFormat('yyyy-MM-dd').format(DateTime.now());reminder=m?.reminder??true;active=m?.active??true;times..clear()..addAll(m?.times??const ['08:00']);}@override void dispose(){for(final c in[name,dose,stock,maxStock,instructions,doctor,doctorCrm,side])c.dispose();super.dispose();}Future<void>addTime()async{final p=await showTimePicker(context:context,initialTime:const TimeOfDay(hour:12,minute:0));if(p==null){return;}final v='${p.hour.toString().padLeft(2,'0')}:${p.minute.toString().padLeft(2,'0')}';if(!times.contains(v))setState(()=>times.add(v));}Future<void>save()async{if(name.text.trim().isEmpty||dose.text.trim().isEmpty||times.isEmpty||times.any((x)=>!RegExp(r'^\d{2}:\d{2}$').hasMatch(x))){snack(context,'Preencha nome, dosagem e pelo menos um horário válido.');return;}final sv=int.tryParse(stock.text)??0,mv=int.tryParse(maxStock.text)??30;if(sv<0||mv<1||sv>mv){snack(context,'O estoque atual deve ser entre 0 e o estoque máximo.');return;}setState(()=>busy=true);final med=Medication(id:widget.med?.id??'',name:name.text.trim(),dosage:dose.text.trim(),unit:unit,frequency:frequency,times:[...times]..sort(),stock:sv,stockMax:mv,active:active,reminder:reminder,color:color,category:category,icon:icon,startDate:start,endDate:widget.med?.endDate,instructions:instructions.text.trim().isEmpty?null:instructions.text.trim(),prescribedBy:doctor.text.trim().isEmpty?null:doctor.text.trim(),doctorCrm:doctorCrm.text.trim().isEmpty?null:doctorCrm.text.trim(),sideEffects:side.text.trim().isEmpty?null:side.text.trim());try{final s=AppScope.of(context);if(widget.med==null){await s.addMedication(med.toApi());}else{await s.editMedication(med.id,med.toApi());}if(mounted)Navigator.pop(context);}catch(e){if(mounted)snack(context,e.toString());}finally{if(mounted)setState(()=>busy=false);}}@override Widget build(BuildContext context)=>AlertDialog(title:Row(children:[const LogoMark(size:36),const SizedBox(width:10),Expanded(child:Text(widget.med==null?'Novo medicamento':'Editar medicamento',style:const TextStyle(fontWeight:FontWeight.w900)))]),content:SizedBox(width:680,child:SingleChildScrollView(child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[TextField(controller:name,autofocus:widget.med==null,decoration:const InputDecoration(labelText:'Nome do medicamento *',prefixIcon:Icon(Icons.medication_outlined))),const SizedBox(height:12),Row(children:[Expanded(child:TextField(controller:dose,decoration:const InputDecoration(labelText:'Dosagem *'))),const SizedBox(width:10),Expanded(child:DropdownButtonFormField<String>(initialValue:unit,items:['mg','g','mL','mcg','UI','comprimido','gotas'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v)=>setState(()=>unit=v??unit),decoration:const InputDecoration(labelText:'Unidade')))]),const SizedBox(height:12),Row(children:[Expanded(child:DropdownButtonFormField<String>(initialValue:frequency,items:['Diário','2x ao dia','3x ao dia','Semanal','Conforme necessidade'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v)=>setState(()=>frequency=v??frequency),decoration:const InputDecoration(labelText:'Frequência'))),const SizedBox(width:10),Expanded(child:DropdownButtonFormField<String>(initialValue:category,items:['Outros','Pressão','Diabetes','Dor','Vitaminas','Antibiótico'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v)=>setState(()=>category=v??category),decoration:const InputDecoration(labelText:'Categoria')))]),const SizedBox(height:18),Row(children:[const Icon(Icons.schedule_rounded,color:kBlue,size:20),const SizedBox(width:8),const Text('Horários',style:TextStyle(fontWeight:FontWeight.w900)),const Spacer(),Text('${times.length} horário(s)',style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:12))]),const SizedBox(height:9),Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:.32),borderRadius:BorderRadius.circular(16)),child:Wrap(spacing:8,runSpacing:8,children:[for(int i=0;i<times.length;i++)InputChip(label:Text(times[i]),onDeleted:times.length>1?()=>setState(()=>times.removeAt(i)):null),ActionChip(avatar:const Icon(Icons.add_rounded,size:18),label:const Text('Adicionar horário'),onPressed:addTime)])),const SizedBox(height:16),Row(children:[Expanded(child:TextField(controller:stock,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Estoque atual'))),const SizedBox(width:10),Expanded(child:TextField(controller:maxStock,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Estoque máximo')))]),const SizedBox(height:8),SwitchListTile(contentPadding:EdgeInsets.zero,value:reminder,onChanged:(v)=>setState(()=>reminder=v),title:const Text('Lembrete ativo',style:TextStyle(fontWeight:FontWeight.w800)),subtitle:const Text('Mantenha os avisos da rotina ligados.')),SwitchListTile(contentPadding:EdgeInsets.zero,value:active,onChanged:(v)=>setState(()=>active=v),title:const Text('Medicamento ativo',style:TextStyle(fontWeight:FontWeight.w800)),subtitle:const Text('Medicamentos pausados deixam de aparecer na rotina.')),ExpansionTile(tilePadding:EdgeInsets.zero,title:const Text('Mais detalhes',style:TextStyle(fontWeight:FontWeight.w800)),children:[TextField(controller:doctor,decoration:const InputDecoration(labelText:'Médico prescritor',prefixIcon:Icon(Icons.medical_services_outlined))),const SizedBox(height:10),TextField(controller:doctorCrm,decoration:const InputDecoration(labelText:'CRM do médico',hintText:'Ex.: CRM/SP 123456',prefixIcon:Icon(Icons.badge_outlined))),const SizedBox(height:10),TextField(controller:instructions,maxLines:2,decoration:const InputDecoration(labelText:'Instruções',prefixIcon:Icon(Icons.notes_rounded))),const SizedBox(height:10),TextField(controller:side,maxLines:2,decoration:const InputDecoration(labelText:'Efeitos colaterais',prefixIcon:Icon(Icons.warning_amber_rounded)))]),const SizedBox(height:18),FilledButton.icon(onPressed:busy?null:save,icon:busy?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(Icons.save_rounded),label:Text(busy?'Salvando...':'Salvar medicamento'))]))));}
+class _MedicationFormState extends State<MedicationForm>{final name=TextEditingController(),dose=TextEditingController(),stock=TextEditingController(),maxStock=TextEditingController(),instructions=TextEditingController(),doctor=TextEditingController(),side=TextEditingController();String unit='mg',frequency='Diário',category='Outros',icon='💊',color='#2563EB',start='';bool reminder=true,busy=false,active=true;final List<String>times=['08:00'];@override void initState(){super.initState();final m=widget.med;name.text=m?.name??'';dose.text=m?.dosage??'';stock.text='${m?.stock??30}';maxStock.text='${m?.stockMax??30}';instructions.text=m?.instructions??'';doctor.text=m?.prescribedBy??'';side.text=m?.sideEffects??'';unit=m?.unit??'mg';frequency=m?.frequency??'Diário';category=m?.category??'Outros';icon=m?.icon??'💊';color=m?.color??'#2563EB';start=m?.startDate??DateFormat('yyyy-MM-dd').format(DateTime.now());reminder=m?.reminder??true;active=m?.active??true;times..clear()..addAll(m?.times??const ['08:00']);}@override void dispose(){for(final c in[name,dose,stock,maxStock,instructions,doctor,side])c.dispose();super.dispose();}Future<void>addTime()async{final p=await showTimePicker(context:context,initialTime:const TimeOfDay(hour:12,minute:0));if(p==null){return;}final v='${p.hour.toString().padLeft(2,'0')}:${p.minute.toString().padLeft(2,'0')}';if(!times.contains(v))setState(()=>times.add(v));}Future<void>save()async{if(name.text.trim().isEmpty||dose.text.trim().isEmpty||times.isEmpty||times.any((x)=>!RegExp(r'^\d{2}:\d{2}$').hasMatch(x))){snack(context,'Preencha nome, dosagem e pelo menos um horário válido.');return;}final sv=int.tryParse(stock.text)??0,mv=int.tryParse(maxStock.text)??30;if(sv<0||mv<1||sv>mv){snack(context,'O estoque atual deve ser entre 0 e o estoque máximo.');return;}setState(()=>busy=true);final med=Medication(id:widget.med?.id??'',name:name.text.trim(),dosage:dose.text.trim(),unit:unit,frequency:frequency,times:[...times]..sort(),stock:sv,stockMax:mv,active:active,reminder:reminder,color:color,category:category,icon:icon,startDate:start,endDate:widget.med?.endDate,instructions:instructions.text.trim().isEmpty?null:instructions.text.trim(),prescribedBy:doctor.text.trim().isEmpty?null:doctor.text.trim(),sideEffects:side.text.trim().isEmpty?null:side.text.trim());try{final s=AppScope.of(context);if(widget.med==null){await s.addMedication(med.toApi());}else{await s.editMedication(med.id,med.toApi());}if(mounted)Navigator.pop(context);}catch(e){if(mounted)snack(context,e.toString());}finally{if(mounted)setState(()=>busy=false);}}@override Widget build(BuildContext context)=>AlertDialog(title:Row(children:[const LogoMark(size:36),const SizedBox(width:10),Expanded(child:Text(widget.med==null?'Novo medicamento':'Editar medicamento',style:const TextStyle(fontWeight:FontWeight.w900)))]),content:SizedBox(width:680,child:SingleChildScrollView(child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[TextField(controller:name,autofocus:widget.med==null,decoration:const InputDecoration(labelText:'Nome do medicamento *',prefixIcon:Icon(Icons.medication_outlined))),const SizedBox(height:12),Row(children:[Expanded(child:TextField(controller:dose,decoration:const InputDecoration(labelText:'Dosagem *'))),const SizedBox(width:10),Expanded(child:DropdownButtonFormField<String>(initialValue:unit,items:['mg','g','mL','mcg','UI','comprimido','gotas'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v)=>setState(()=>unit=v??unit),decoration:const InputDecoration(labelText:'Unidade')))]),const SizedBox(height:12),Row(children:[Expanded(child:DropdownButtonFormField<String>(initialValue:frequency,items:['Diário','2x ao dia','3x ao dia','Semanal','Conforme necessidade'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v)=>setState(()=>frequency=v??frequency),decoration:const InputDecoration(labelText:'Frequência'))),const SizedBox(width:10),Expanded(child:DropdownButtonFormField<String>(initialValue:category,items:['Outros','Pressão','Diabetes','Dor','Vitaminas','Antibiótico'].map((x)=>DropdownMenuItem(value:x,child:Text(x))).toList(),onChanged:(v)=>setState(()=>category=v??category),decoration:const InputDecoration(labelText:'Categoria')))]),const SizedBox(height:18),Row(children:[const Icon(Icons.schedule_rounded,color:kBlue,size:20),const SizedBox(width:8),const Text('Horários',style:TextStyle(fontWeight:FontWeight.w900)),const Spacer(),Text('${times.length} horário(s)',style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:12))]),const SizedBox(height:9),Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:.32),borderRadius:BorderRadius.circular(16)),child:Wrap(spacing:8,runSpacing:8,children:[for(int i=0;i<times.length;i++)InputChip(label:Text(times[i]),onDeleted:times.length>1?()=>setState(()=>times.removeAt(i)):null),ActionChip(avatar:const Icon(Icons.add_rounded,size:18),label:const Text('Adicionar horário'),onPressed:addTime)])),const SizedBox(height:16),Row(children:[Expanded(child:TextField(controller:stock,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Estoque atual'))),const SizedBox(width:10),Expanded(child:TextField(controller:maxStock,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'Estoque máximo')))]),const SizedBox(height:8),SwitchListTile(contentPadding:EdgeInsets.zero,value:reminder,onChanged:(v)=>setState(()=>reminder=v),title:const Text('Lembrete ativo',style:TextStyle(fontWeight:FontWeight.w800)),subtitle:const Text('Mantenha os avisos da rotina ligados.')),SwitchListTile(contentPadding:EdgeInsets.zero,value:active,onChanged:(v)=>setState(()=>active=v),title:const Text('Medicamento ativo',style:TextStyle(fontWeight:FontWeight.w800)),subtitle:const Text('Medicamentos pausados deixam de aparecer na rotina.')),ExpansionTile(tilePadding:EdgeInsets.zero,title:const Text('Mais detalhes',style:TextStyle(fontWeight:FontWeight.w800)),children:[TextField(controller:doctor,decoration:const InputDecoration(labelText:'Médico prescritor',prefixIcon:Icon(Icons.medical_services_outlined))),const SizedBox(height:10),TextField(controller:instructions,maxLines:2,decoration:const InputDecoration(labelText:'Instruções',prefixIcon:Icon(Icons.notes_rounded))),const SizedBox(height:10),TextField(controller:side,maxLines:2,decoration:const InputDecoration(labelText:'Efeitos colaterais',prefixIcon:Icon(Icons.warning_amber_rounded)))]),const SizedBox(height:18),FilledButton.icon(onPressed:busy?null:save,icon:busy?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(Icons.save_rounded),label:Text(busy?'Salvando...':'Salvar medicamento'))]))));}
 
 String medicationName(List<Medication> meds,String id){for(final m in meds){if(m.id==id)return m.name;}return 'Medicamento';}
 
