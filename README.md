@@ -31,7 +31,7 @@ Aplicativo Flutter do **MedSync**, conectado ao backend oficial do projeto.
 
 A API está configurada para:
 
-🔗 **[MedSync API](https://medsync-backend-oqms.onrender.com/api)**
+🔗 **[MedSync API](https://web-1-r817.onrender.com/api)**
 
 O backend e o banco de dados precisam estar disponíveis para as funcionalidades que dependem da API.
 

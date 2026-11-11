@@ -17,7 +17,7 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
-  static const baseUrl = 'https://medsync-backend-oqms.onrender.com/api';
+  static const baseUrl = 'https://web-1-r817.onrender.com/api';
   final SharedPreferences prefs;
   ApiClient(this.prefs);
   String? get token => prefs.getString('token');
